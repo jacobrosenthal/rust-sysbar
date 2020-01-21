@@ -23,6 +23,23 @@ fn main() {
                 handle.kill().unwrap();
                 process::exit(0);
             }
+
+            //restart on process dying for some reason
+            match handle.try_wait() {
+                Ok(Some(_status)) => {
+                    handle = process::Command::new("caffeinate")
+                        .arg("-d")
+                        .spawn()
+                        .expect("failed to execute process");
+                }
+                // not entirely sure why we need to also wait? but doesnt
+                // reap and respawn process without this
+                Ok(None) => {
+                    let _res = handle.wait();
+                }
+                //eh.. dont care I guess. Could report back or something
+                Err(_e) => {}
+            }
         }
     });
 
